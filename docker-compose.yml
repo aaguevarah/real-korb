@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+    real-korb-app:
+        build:
+            args:
+                user: ec2-user
+                uid: 1000
+            context: ./
+            dockerfile: Dockerfile
+        image: real-korb-img
+        container_name: real-korb-app
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www@
+        networks:
+            - real-korb-net
+    real-korb-db:
+        image: mysql:8.0
+        container_name: real-korb-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: RealEsate
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_PASSWORD: real
+            MYSQL_USER: real
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        volumes:
+            - real-korb-db:/var/lib/mysql
+        networks:
+            - real-korb-net
+    real-korb-nginx:
+        image: nginx:alpine
+        container_name: real-korb-nginx
+        restart: unless-stopped
+        ports:
+            - "8000:80"
+        volumes:
+            - ./:/var/www
+            - ./docker-compose/nginx:/etc/nginx/conf.d/
+        networks:
+            - real-korb-net
+volumes:
+    real-korb-db:
+        driver: local
+networks:
+  real-korb-net:
+      driver: bridge
